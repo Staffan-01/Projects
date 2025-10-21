@@ -1,0 +1,123 @@
+#include <stdio.h>
+struct bk{
+    int bkid,ncp,bpr;
+    char bknm[100];
+    char aunm[100];
+}s;
+struct std{
+    int sid,spswd;
+}r;
+int f=1,t=1,psd=123;
+int main()
+{
+    int a,b,i,j,l;
+    FILE *p;
+    char c,d;
+    printf("\t\t\t\t\t'''Welcome to IS Library'''");
+    while(1){
+        printf("\n1.Admin\n2.Student\n3.Exit\n");
+        scanf("%d",&a);
+        if(a==1){
+                printf("Admin Password:\n");
+                scanf("%d",&b);
+                if(b==psd){
+                    do{
+                        printf("1.Add Books\n2.Report Book\n3.Exit\n");
+                        scanf("%d",&b);
+                        if(b==1){
+                            s.bkid=f; 
+                            printf("Book id:%d",f++);
+                            printf("\nBook name:");
+                            scanf("%s",s.bknm);
+                            printf("\nAuthor name:");
+                            scanf("%s",s.aunm);
+                            printf("\nNo of copies:");
+                            scanf("%d",&s.ncp);
+                            printf("\nPrice of Book:");
+                            scanf("%d",&s.bpr);
+                        }
+                        else if(b==2){
+                            fprintf(p,"Book id \t\tBook name  \t\tAuthor name \t\tNo of copies \t\t Price of Book \t\t\n");
+                            fprintf(p,"\t%d \t\t\t%s  \t\t\t\t%s \t\t\t\t%d \t\t\t\t\t %d \t\t\t\t\t\n",s.bkid,s.bknm,s.aunm,s.ncp,s.bpr);
+                            fclose(p);
+                        }
+                        else if(b==3){
+                            break;
+                        }
+                    }while(1);
+                }
+                else{
+                    break;
+                }
+        }
+        else if(a==2){
+            while(1){
+            printf("1.Sign up\n2.Log in\n3.Exit\n");
+            scanf("%d",&b);
+            if(b==1){
+                r.sid=t;
+                printf("Student id: %d\n",t++);
+                printf("Create password:");
+                scanf("%d",&r.spswd);
+            }
+            else if(b==2){
+                printf("Student id: ");
+                scanf("%d",&j);
+                printf("Student Password: ");
+                scanf("%d",&l);
+                if(j==r.sid&&l==r.spswd){
+                    while(1){
+                    printf("1.View Books\n2.Lend & Return Book\n3.Exit\n");
+                    scanf("%d",&i);
+                    if(i==1){
+                        printf("Book id \t\tBook name  \t\tAuthor name \t\tNo of copies \t\t Price of Book \t\t\n");
+                        printf("\t%d \t\t%s  \t\t\t%s \t\t\t%d \t\t\t %d \t\t\t\t\n",s.bkid,s.bknm,s.aunm,s.ncp,s.bpr);
+                    }
+                    else if(i==2){
+                        printf("1.Lend Book\n2.Return Book\n3.Exit\n");
+                        scanf("%d",&j);
+                        if(j==1){
+                            printf("Book id:\n");
+                            scanf("%d",&l);
+                                if(l==s.bkid){
+                                    printf("Book Lended successfully\n");
+                                    s.ncp--;
+                                }
+                                else{
+                                    printf("No book found in that id\n");
+                                }
+                        }    
+                        else if(j==2){
+                            printf("Book id:\n");
+                            scanf("%d",&l);
+                                if(l==s.bkid){
+                                    printf("Book returned successfully\n");
+                                    s.ncp++;
+                                }
+                                else{
+                                    printf("Failed to return book\n");
+                                }
+                        }
+                        else{
+                            break;
+                        }
+                    }
+                    else{
+                        break;
+                    }
+                    }
+                }
+                else{
+                    printf("Error in your log in\n");
+                }
+            }
+            else{
+                break;
+            }
+            }
+        }
+        else{
+            break;
+        }
+    }
+}
