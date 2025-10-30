@@ -1,0 +1,211 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
+
+class Main {
+    static Scanner sc = new Scanner(System.in);
+    static ArrayList<ArrayList<String>> books = new ArrayList<>(); // Book list: [bookName, isAvailable]
+    static ArrayList<ArrayList<String>> students = new ArrayList<>(); // Student list: [name, id, password]
+    static ArrayList<ArrayList<String>> issuedBooks = new ArrayList<>(); // Issued books: [bookName, studentName, studentId]
+    static ArrayList<String> log = new ArrayList<>(); // Log history
+    static int studentIdCounter = 100;
+
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("1.Admin\n2.Student\n3.Exit\nSelect: ");
+            int n = sc.nextInt();
+            switch (n) {
+                case 1:
+                    admin();
+                    break;
+                case 2:
+                    student();
+                    break;
+                case 3:
+                    System.exit(0);
+                default:
+                    System.out.println("Invalid Input");
+            }
+        }
+    }
+
+    static void admin() {
+        System.out.println("Enter Admin Password: ");
+        int pwd = sc.nextInt();
+        if (pwd != 123) {
+            System.out.println("Invalid Password");
+            return;
+        }
+        while (true) {
+            System.out.println("1.Add Book\n2.View Issued Books\n3.Generate Report\n4.Logout\nSelect: ");
+            int x = sc.nextInt();
+            switch (x) {
+                case 1:
+                    System.out.println("Enter Book Name: ");
+                    String bookName = sc.next();
+                    ArrayList<String> book = new ArrayList<>();
+                    book.add(bookName);
+                    book.add("true");
+                    books.add(book);
+                    System.out.println("Book Added Successfully");
+                    break;
+                case 2:
+                    if (log.isEmpty()) {
+                        System.out.println("No Books Issued or Returned Yet");
+                    } else {
+                        System.out.println("Lending and Returning History:");
+                        for (String record : log) {
+                            System.out.println(record);
+                        }
+                    }
+                    break;
+                case 3:
+                    generateReport();
+                    System.out.println("File generated after the code ends.");
+                    break;
+                case 4:
+                    return;
+                default:
+                    System.out.println("Invalid Input");
+            }
+        }
+    }
+
+    static void student() {
+        System.out.println("1.Signup\n2.Signin\n3.Back\nSelect: ");
+        int x = sc.nextInt();
+        switch (x) {
+            case 1:
+                System.out.println("Enter your name: ");
+                String name = sc.next();
+                System.out.println("Create Password: ");
+                String password = sc.next();
+                String newId = String.valueOf(studentIdCounter++);
+                ArrayList<String> student = new ArrayList<>();
+                student.add(name);
+                student.add(newId);
+                student.add(password);
+                students.add(student);
+                System.out.println("Registered Successfully");
+                System.out.println("Your ID: " + newId + " and Password: " + password);
+                break;
+            case 2:
+                System.out.println("Enter ID: ");
+                String id = sc.next();
+                System.out.println("Enter Password: ");
+                String pass = sc.next();
+                ArrayList<String> loggedInStudent = null;
+                for (ArrayList<String> studentEntry : students) {
+                    if (studentEntry.get(1).equals(id) && studentEntry.get(2).equals(pass)) {
+                        loggedInStudent = studentEntry;
+                        break;
+                    }
+                }
+                if (loggedInStudent == null) {
+                    System.out.println("Incorrect Credentials");
+                    return;
+                }
+                while (true) {
+                    System.out.println("1.View Books\n2.Lend Book\n3.Return Book\n4.Logout\nSelect: ");
+                    int choice = sc.nextInt();
+                    switch (choice) {
+                        case 1:
+                            for (ArrayList<String> book : books) {
+                                System.out.println("Book: " + book.get(0) + ", Available: " + (book.get(1).equals("true") ? "Yes" : "No"));
+                            }
+                            break;
+                        case 2:
+                            System.out.println("Enter Book Name to Lend: ");
+                            String lendBookName = sc.next();
+                            boolean found = false;
+                            for (ArrayList<String> book : books) {
+                                if (book.get(0).equals(lendBookName) && book.get(1).equals("true")) {
+                                    book.set(1, "false");
+                                    ArrayList<String> issue = new ArrayList<>();
+                                    issue.add(lendBookName);
+                                    issue.add(loggedInStudent.get(0));
+                                    issue.add(loggedInStudent.get(1));
+                                    issuedBooks.add(issue);
+                                    log.add("Book: " + lendBookName + " issued to " + loggedInStudent.get(0) + " (ID: " + loggedInStudent.get(1) + ")");
+                                    System.out.println("Book Lended Successfully");
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                System.out.println("Book Not Available or Not Found");
+                            }
+                            break;
+                        case 3:
+                            System.out.println("Enter Book Name to Return: ");
+                            String returnBookName = sc.next();
+                            boolean returned = false;
+                            Iterator<ArrayList<String>> iterator = issuedBooks.iterator();
+                            while (iterator.hasNext()) {
+                                ArrayList<String> issue = iterator.next();
+                                if (issue.get(0).equals(returnBookName) && issue.get(2).equals(loggedInStudent.get(1))) {
+                                    for (ArrayList<String> book : books) {
+                                        if (book.get(0).equals(returnBookName)) {
+                                            book.set(1, "true");
+                                            break;
+                                        }
+                                    }
+                                    log.add("Book: " + returnBookName + " returned by " + loggedInStudent.get(0) + " (ID: " + loggedInStudent.get(1) + ")");
+                                    iterator.remove();
+                                    System.out.println("Book Returned Successfully");
+                                    returned = true;
+                                    break;
+                                }
+                            }
+                            if (!returned) {
+                                System.out.println("Book Not Found in Your Issued List");
+                            }
+                            break;
+                        case 4:
+                            return;
+                        default:
+                            System.out.println("Invalid Input");
+                    }
+                }
+            case 3:
+                return;
+            default:
+                System.out.println("Invalid Input");
+        }
+    }
+
+    static void generateReport() {
+        try (FileWriter writer = new FileWriter("Report.txt")) {
+            writer.write("Report Generated:\n\n");
+
+            writer.write("Issued Books:\n");
+            if (issuedBooks.isEmpty()) {
+                writer.write("No Books Currently Issued\n");
+            } else {
+                for (ArrayList<String> issue : issuedBooks) {
+                    writer.write("Book: " + issue.get(0) + ", Issued to: " + issue.get(1) + ", ID: " + issue.get(2) + "\n");
+                }
+            }
+
+            writer.write("\nLog History:\n");
+            if (log.isEmpty()) {
+                writer.write("No Lending or Returning Activities Yet\n");
+            } else {
+                for (String record : log) {
+                    writer.write(record + "\n");
+                }
+            }
+
+            writer.write("\nRegistered Students:\n");
+            if (students.isEmpty()) {
+                writer.write("No Students Registered\n");
+            } else {
+                for (ArrayList<String> student : students) {
+                    writer.write("Name: " + student.get(0) + ", ID: " + student.get(1) + ", Password: " + student.get(2) + "\n");
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error generating report: " + e.getMessage());
+        }
+    }
+}
