@@ -1,0 +1,217 @@
+Total = 200
+Price = 2000
+Bt = 0
+z = 100  # Initializing z globally (for unique PassengerID)
+b = []  # List to store all passenger data
+k = ['Name', 'Age', 'Gender', 'Password', 'Passengerid', 'tickets', 'Status']  # Keys for passenger data
+
+# Function to save data to a file
+def save_data():
+    with open("passengers_data.txt", "w") as f:
+        for passenger in b:
+            f.write(str(passenger) + "\n")
+
+# Function to load data from the file
+def load_data():
+    try:
+        with open("passengers_data.txt", "r") as f:
+            for line in f:
+                data = eval(line.strip())  # Evaluates the string to a dictionary
+                b.append(data)
+    except FileNotFoundError:
+        pass  # If the file doesn't exist, it's not a problem
+
+# Function for passenger operations (sign up, login, ticket booking, etc.)
+def Passenger(z, Total, Price, Bt):
+    while True:
+        print('1. Signup')
+        print('2. Login')
+        print('3. Go back')
+        print('Enter your choice:')
+        m = int(input())  
+
+        if m == 1:
+            print('Enter your name:')
+            name = input()
+            print('Your Age:')
+            age = int(input())
+            if age > 18:
+                print('Enter your password:')
+                password = int(input())
+                print('Enter your gender:')
+                gender = input().lower()
+                if gender not in ('male', 'female', 'others'):
+                    print('Invalid gender input')
+                    continue
+                newid = name[0] + gender[0] + str(z)  # Unique ID for passenger
+                passenger_data = {
+                    'Name': name,
+                    'Age': age,
+                    'Gender': gender,
+                    'Password': password,
+                    'Passengerid': newid,
+                    'tickets': 0,
+                    'Status': 'no tickets booked'
+                }
+                b.append(passenger_data)
+                print(f'You have signed up successfully :)')
+                print(f'Your ID is: {newid}')
+                print(f'Your password is: {password}')
+                z += 1  # Increment z for the next passenger ID
+                save_data()  # Save the new data
+            else:
+                print('You are not eligible to sign up.')
+
+        elif m == 2:
+            print('Enter your ID:')
+            pid = input()
+            print('Enter your password:')
+            pwd = int(input())
+            f = True
+            for i in range(len(b)):
+                if b[i]['Passengerid'] == pid and b[i]['Password'] == pwd:
+                    print('Login successful')
+                    f = False
+                    while True:
+                        print('1. Check availability and fare')
+                        print('2. Book Ticket')
+                        print('3. Check booking status')
+                        print('4. Go Back')
+                        print('Enter your choice:')
+                        e = int(input())
+                        if e == 1:
+                            print(f'Total no. of tickets: {Total}')
+                            print(f'Price per ticket: {Price}')
+                            print(f'No. of tickets booked: {Bt}')
+                            print(f'No. of tickets available: {Total - Bt}')
+                        elif e == 2:
+                            print(f'Enter number of tickets to book (Max {Total - Bt}):')
+                            tickets = int(input())
+                            if tickets <= Total - Bt:
+                                b[i]['tickets'] = tickets
+                                b[i]['Status'] = 'waiting'
+                                Bt += tickets  # Update total booked tickets
+                                print(f'Your ticket is in the waiting list. Tickets booked: {tickets}')
+                            else:
+                                print('Not enough tickets available.')
+                        elif e == 3:
+                            if b[i]['Status'] == 'waiting':
+                                print('Your ticket is in the waiting list.')
+                            elif b[i]['Status'] == 'Approved':
+                                print('Your ticket is approved!')
+                            elif b[i]['Status'] == 'no tickets booked':
+                                print('You have not booked any tickets.')
+                            else:
+                                print('Tickets cancelled')
+                        elif e == 4:
+                            break
+                if not f:
+                    break
+            if f:
+                print('Invalid credentials')
+                
+        elif m == 3:
+            break
+        else:
+            print('Invalid input')
+        
+    return z, Total, Price, Bt
+
+# Function for cashier operations (approve, cancel tickets, view report)
+def Cashier(Total, Bt):
+    cid = 111  # Cashier ID
+    cpd = 1    # Cashier password
+    while True:
+        print("1. Login")
+        print("2. Exit")
+        print("Enter choice:")
+        q = int(input())
+        if q == 1:
+            print('Enter Cashier id:')
+            h = int(input())
+            print('Enter Cashier password:')
+            x = int(input())
+            if cid == h and cpd == x:
+                print('Login successful')
+                while True:
+                    print('1. Approve Ticket')
+                    print('2. Cancel Ticket')
+                    print('3. Report view')
+                    print('4. Logout')
+                    r = int(input('Select:'))
+                    if r == 1:
+                        approved_count = 0
+                        for i in b:
+                            if i['Status'] == 'waiting' and i['tickets'] > 0:
+                                print(i)
+                                u = input(f'Enter passenger id to approve ticket for {i["Name"]}: ')
+                                if u == i['Passengerid']:
+                                    i['Status'] = 'Approved'
+                                    Total -= i['tickets']  # Decrease total available tickets
+                                    Bt += i['tickets']  # Increase total booked tickets
+                                    approved_count += 1
+                                    print(f'Ticket Approved for {i["Name"]}')
+                                    save_data()  # Save data after approval
+                                else:
+                                    print('Invalid passenger ID or ticket already approved.')
+                        if approved_count == 0:
+                            print('No waiting tickets to approve.')
+
+                    elif r == 2:
+                        canceled_count = 0
+                        for i in b:
+                            if i['Status'] != 'no tickets booked':
+                                print(i)
+                                u = input(f'Enter passenger id to cancel ticket for {i["Name"]}: ')
+                                if u == i['Passengerid'] and i['Status'] != 'Cancelled' and i['Status'] != 'Approved':
+                                    i['Status'] = 'Cancelled'
+                                    Bt -= i['tickets']  # Decrease the total booked tickets
+                                    i['tickets'] = 0
+                                    canceled_count += 1
+                                    print(f'Ticket cancelled for {i["Name"]}')
+                                    save_data()  # Save data after cancellation
+                        if canceled_count == 0:
+                            print('No tickets available to cancel.')
+
+                    elif r == 3:
+                        # Generate and display the report
+                        print("\nPassenger Report:")
+                        for i in b:
+                            print(f"ID: {i['Passengerid']}, Name: {i['Name']}, Tickets: {i['tickets']}, Status: {i['Status']}")
+                        # Save the report to file
+                        with open("report.txt", "w") as f:
+                            for i in b:
+                                f.write(f"ID: {i['Passengerid']}, Name: {i['Name']}, Tickets: {i['tickets']}, Status: {i['Status']}\n")
+                        print("Report saved to report.txt")
+
+                    elif r == 4:
+                        break
+            else:
+                print('Wrong ID or Password')              
+        else:
+            return Total, Bt
+
+# Main function that runs the program
+def main():
+    global z, Total, Price, Bt  # Declare global variables at the top of the function
+
+    print('\t\t\t\t\tFLIGHT RESERVATION SYSTEM\t\t\t\t')
+    load_data()  # Load data from the file
+    while True:
+        print('1. Passenger')
+        print('2. Cashier')
+        print('3. Exit')
+        print('Enter your choice:')
+        n = int(input())
+        if n == 1:
+            z, Total, Price, Bt = Passenger(z, Total, Price, Bt)
+        elif n == 2:
+            Total, Bt = Cashier(Total, Bt)
+        elif n == 3:
+            print("Thank you! Visit again :)")
+            break
+        else:
+            print("Invalid Input")
+
+if __name__ == "__main__":
+    main()
